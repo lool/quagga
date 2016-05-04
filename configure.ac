@@ -371,8 +371,6 @@ fi
 AC_SUBST([enable_user])
 AC_SUBST([enable_group])
 AC_SUBST([enable_vty_group])
-AC_DEFINE_UNQUOTED(QUAGGA_USER, "${enable_user}", Quagga User)
-AC_DEFINE_UNQUOTED(QUAGGA_GROUP, "${enable_group}", Quagga Group)
 
 enable_configfile_mask=${enable_configfile_mask:-0600}
 AC_DEFINE_UNQUOTED(CONFIGFILE_MASK, ${enable_configfile_mask}, Mask for config files)
