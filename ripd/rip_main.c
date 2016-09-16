@@ -48,6 +48,7 @@ static struct option longopts[] =
   { "dryrun",      no_argument,       NULL, 'C'},
   { "vty_addr",    required_argument, NULL, 'A'},
   { "vty_port",    required_argument, NULL, 'P'},
+  { "vty_socket",  required_argument, NULL, 'S'},
   { "retain",      no_argument,       NULL, 'r'},
   { "user",        required_argument, NULL, 'u'},
   { "group",       required_argument, NULL, 'g'},
@@ -84,6 +85,9 @@ char *config_file = NULL;
 
 /* ripd program name */
 
+/* VTY Socket prefix */
+char vty_sock_path[256] = RIP_VTYSH_PATH;
+
 /* Route retain mode flag. */
 int retain_mode = 0;
 
@@ -115,6 +119,7 @@ Daemon which manages RIP version 1 and 2.\n\n\
 -z, --socket       Set path of zebra socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
+-S, --vty_socket   Override vty socket path\n\
 -C, --dryrun       Check configuration for validity and exit\n\
 -r, --retain       When program terminates, retain added route by ripd.\n\
 -u, --user         User to run as\n\
@@ -141,7 +146,7 @@ sighup (void)
   vty_read_config (config_file, config_default);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, RIP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_sock_path);
 
   /* Try to return to normal operation. */
 }
@@ -210,7 +215,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:rvC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:hA:P:S:u:g:rvC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -246,6 +251,18 @@ main (int argc, char **argv)
           if (vty_port <= 0 || vty_port > 0xffff)
             vty_port = RIP_VTY_PORT;
 	  break;
+  case 'S':
+    /* Different path for VTY Socket specified
+       overriding the default path, but keep the filename */
+    strncpy(vty_sock_path, optarg, sizeof(vty_sock_path)-1);
+    if (strrchr(RIP_VTYSH_PATH, '/') != NULL)
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], strrchr(RIP_VTYSH_PATH, '/'), sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    else {
+      /* RIP_VTYSH_PATH configured as relative path during config? Should really never happen for sensible config */
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], "/", sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], RIP_VTYSH_PATH, sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    }
+    break;
 	case 'r':
 	  retain_mode = 1;
 	  break;
@@ -307,7 +324,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, RIP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_sock_path);
 
   /* Print banner. */
   zlog_notice ("RIPd %s starting: vty@%d", QUAGGA_VERSION, vty_port);
