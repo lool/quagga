@@ -87,6 +87,7 @@ struct option longopts[] =
   { "help",        no_argument,       NULL, 'h'},
   { "vty_addr",    required_argument, NULL, 'A'},
   { "vty_port",    required_argument, NULL, 'P'},
+  { "vty_socket",  required_argument, NULL, 'S'},
   { "user",        required_argument, NULL, 'u'},
   { "group",       required_argument, NULL, 'g'},
   { "apiserver",   no_argument,       NULL, 'a'},
@@ -95,6 +96,9 @@ struct option longopts[] =
 };
 
 /* OSPFd program name */
+
+/* VTY Socket prefix */
+char vty_sock_path[256] = OSPF_VTYSH_PATH;
 
 /* Master of threads. */
 struct thread_master *master;
@@ -122,6 +126,7 @@ Daemon which manages OSPF.\n\n\
 -z, --socket       Set path of zebra socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
+-S, --vty_socket   Override vty socket path\n\
 -u, --user         User to run as\n\
 -g, --group        Group to run as\n\
 -a. --apiserver    Enable OSPF apiserver\n\
@@ -204,7 +209,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:avC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:hA:P:S:u:g:avC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -240,6 +245,18 @@ main (int argc, char **argv)
           if (vty_port <= 0 || vty_port > 0xffff)
             vty_port = OSPF_VTY_PORT;
   	  break;
+  case 'S':
+    /* Different path for VTY Socket specified
+       overriding the default path, but keep the filename */
+    strncpy(vty_sock_path, optarg, sizeof(vty_sock_path)-1);
+    if (strrchr(OSPF_VTYSH_PATH, '/') != NULL)
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], strrchr(OSPF_VTYSH_PATH, '/'), sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    else {
+      /* OSPF_VTYSH_PATH configured as relative path during config? Should really never happen for sensible config */
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], "/", sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], OSPF_VTYSH_PATH, sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    }
+    break;
 	case 'u':
 	  ospfd_privs.user = optarg;
 	  break;
@@ -328,7 +345,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Create VTY socket */
-  vty_serv_sock (vty_addr, vty_port, OSPF_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_sock_path);
 
   /* Print banner. */
   zlog_notice ("OSPFd %s starting: vty@%d", QUAGGA_VERSION, vty_port);
