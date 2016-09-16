@@ -63,6 +63,7 @@ static const struct option longopts[] =
   { "listenon",    required_argument, NULL, 'l'},
   { "vty_addr",    required_argument, NULL, 'A'},
   { "vty_port",    required_argument, NULL, 'P'},
+  { "vty_socket",  required_argument, NULL, 'S'},
   { "retain",      no_argument,       NULL, 'r'},
   { "no_kernel",   no_argument,       NULL, 'n'},
   { "user",        required_argument, NULL, 'u'},
@@ -102,6 +103,9 @@ static struct quagga_signal_t bgp_signals[] =
 
 /* Configuration file and directory. */
 char config_default[] = SYSCONFDIR BGP_DEFAULT_CONFIG;
+
+/* VTY Socket prefix */
+char vty_sock_path[256] = BGP_VTYSH_PATH;
 
 /* Route retain mode flag. */
 static int retain_mode = 0;
@@ -157,6 +161,7 @@ redistribution between different routing protocols.\n\n\
 -l, --listenon     Listen on specified address (implies -n)\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
+-S, --vty_socket   Override vty socket path\n\
 -r, --retain       When program terminates, retain added route by bgpd.\n\
 -n, --no_kernel    Do not install route to kernel.\n\
 -u, --user         User to run as\n\
@@ -186,7 +191,7 @@ sighup (void)
   vty_read_config (config_file, config_default);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, BGP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_sock_path);
 
   /* Try to return to normal operation. */
 }
@@ -362,7 +367,7 @@ main (int argc, char **argv)
   /* Command line argument treatment. */
   while (1) 
     {
-      opt = getopt_long (argc, argv, "df:i:z:hp:l:A:P:rnu:g:vC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:hp:l:A:P:S:rnu:g:vC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -405,6 +410,18 @@ main (int argc, char **argv)
 	  if (vty_port <= 0 || vty_port > 0xffff)
 	    vty_port = BGP_VTY_PORT;
 	  break;
+  case 'S':
+    /* Different path for VTY Socket specified
+       overriding the default path, but keep the filename */
+    strncpy(vty_sock_path, optarg, sizeof(vty_sock_path)-1);
+    if (strrchr(BGP_VTYSH_PATH, '/') != NULL)
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], strrchr(BGP_VTYSH_PATH, '/'), sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    else {
+      /* BGP_VTYSH_PATH configured as relative path during config? Should really never happen for sensible config */
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], "/", sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+      strncpy(&vty_sock_path[strlen(vty_sock_path)], BGP_VTYSH_PATH, sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+    }
+    break;
 	case 'r':
 	  retain_mode = 1;
 	  break;
@@ -467,7 +484,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Make bgp vty socket. */
-  vty_serv_sock (vty_addr, vty_port, BGP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_sock_path);
 
   /* Print banner. */
   zlog_notice ("BGPd %s starting: vty@%d, bgp@%s:%d pid %d", QUAGGA_VERSION,
