@@ -57,11 +57,15 @@ struct option longopts[] = {
   { "socket",        required_argument, NULL, 'z'},
   { "vty_addr",      required_argument, NULL, 'A'},
   { "vty_port",      required_argument, NULL, 'P'},
+  { "vty_socket",    required_argument, NULL, 'S'},
   { "version",       no_argument,       NULL, 'v'},
   { "debug_zclient", no_argument,       NULL, 'Z'},
   { "help",          no_argument,       NULL, 'h'},
   { 0 }
 };
+
+/* VTY Socket prefix */
+char vty_sock_path[256] = PIM_VTYSH_PATH;
 
 /* pimd privileges */
 zebra_capabilities_t _caps_p [] = 
@@ -102,6 +106,7 @@ Daemon which manages PIM.\n\n\
 -z, --socket         Set path of zebra socket\n\
 -A, --vty_addr       Set vty's bind address\n\
 -P, --vty_port       Set vty's port number\n\
+-S, --vty_socket     Override vty socket path\n\
 -v, --version        Print program version\n\
 "
 
@@ -141,7 +146,7 @@ int main(int argc, char** argv, char** envp) {
   while (1) {
     int opt;
             
-    opt = getopt_long (argc, argv, "df:i:z:A:P:vZh", longopts, 0);
+    opt = getopt_long (argc, argv, "df:i:z:A:P:S:vZh", longopts, 0);
                       
     if (opt == EOF)
       break;
@@ -166,6 +171,18 @@ int main(int argc, char** argv, char** envp) {
       break;
     case 'P':
       vty_port = atoi (optarg);
+      break;
+    case 'S':
+      /* Different path for VTY Socket specified
+         overriding the default path, but keep the filename */
+      strncpy(vty_sock_path, optarg, sizeof(vty_sock_path)-1);
+      if (strrchr(PIM_VTYSH_PATH, '/') != NULL)
+        strncpy(&vty_sock_path[strlen(vty_sock_path)], strrchr(PIM_VTYSH_PATH, '/'), sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+      else {
+        /* PIM_VTYSH_PATH configured as relative path during config? Should really never happen for sensible config */
+        strncpy(&vty_sock_path[strlen(vty_sock_path)], "/", sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+        strncpy(&vty_sock_path[strlen(vty_sock_path)], PIM_VTYSH_PATH, sizeof(vty_sock_path)-strlen(vty_sock_path)-1);
+      }
       break;
     case 'v':
       printf(PIMD_PROGNAME " version %s\n", PIMD_VERSION);
@@ -232,7 +249,7 @@ int main(int argc, char** argv, char** envp) {
   /* Create pimd VTY socket */
   if (vty_port < 0)
     vty_port = PIMD_VTY_PORT;
-  vty_serv_sock(vty_addr, vty_port, PIM_VTYSH_PATH);
+  vty_serv_sock(vty_addr, vty_port, vty_sock_path);
 
   zlog_notice("Quagga %s " PIMD_PROGNAME " %s starting, VTY interface at port TCP %d",
 	      QUAGGA_VERSION, PIMD_VERSION, vty_port);
