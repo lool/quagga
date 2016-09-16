@@ -212,6 +212,13 @@ parts:
     quagga-scripts:
         plugin: make
         source: scripts
+    helpers:
+        stage-packages:
+           - telnet
+           - traceroute
+           - iputils-ping
+        plugin: make
+        source: helpers
     docs:
         plugin: dump
         source: .
