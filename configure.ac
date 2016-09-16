@@ -405,6 +405,7 @@ dnl -----------------------------------
 if test "x${EXTRAVERSION}" != "x" ; then
   VERSION="${VERSION}${EXTRAVERSION}"
   PACKAGE_VERSION="${PACKAGE_VERSION}${EXTRAVERSION}"
+  AC_SUBST(PACKAGE_EXTRAVERSION, ["${EXTRAVERSION}"])
   PACKAGE_STRING="${PACKAGE_STRING}${EXTRAVERSION}"
 fi
 
@@ -1546,6 +1547,8 @@ AC_CONFIG_FILES([Makefile lib/Makefile zebra/Makefile ripd/Makefile
 	  redhat/Makefile
 	  pkgsrc/Makefile
 	  redhat/quagga.spec 
+          snapcraft/Makefile
+          snapcraft/snapcraft.yaml
 	  lib/version.h
 	  doc/defines.texi
 	  isisd/topology/Makefile
