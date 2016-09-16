@@ -68,4 +68,6 @@ extern int execute_flag;
 
 extern struct vty *vty;
 
+extern char * vty_sock_path;
+
 #endif /* VTYSH_H */

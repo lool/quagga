@@ -47,6 +47,9 @@ char history_file[MAXPATHLEN];
 /* Flag for indicate executing child command. */
 int execute_flag = 0;
 
+/* VTY Socket prefix */
+char * vty_sock_path = NULL;
+
 /* For sigsetjmp() & siglongjmp(). */
 static sigjmp_buf jmpbuf;
 
@@ -137,6 +140,7 @@ usage (int status)
 	    "-d, --daemon             Connect only to the specified daemon\n" \
 	    "-E, --echo               Echo prompt and command in -c mode\n" \
 	    "-C, --dryrun             Check configuration for validity and exit\n" \
+	    "-S, --vty_socket         Override vty socket path\n"\
 	    "-h, --help               Display this help and exit\n\n" \
 	    "Note that multiple commands may be executed from the command\n" \
 	    "line by passing multiple -c args, or by embedding linefeed\n" \
@@ -154,6 +158,7 @@ struct option longopts[] =
   { "eval",                 required_argument,       NULL, 'e'},
   { "command",              required_argument,       NULL, 'c'},
   { "daemon",               required_argument,       NULL, 'd'},
+  { "vty_socket",           required_argument,       NULL, 'S'},
   { "echo",                 no_argument,             NULL, 'E'},
   { "dryrun",		    no_argument,	     NULL, 'C'},
   { "help",                 no_argument,             NULL, 'h'},
@@ -235,7 +240,7 @@ main (int argc, char **argv, char **env)
   /* Option handling. */
   while (1) 
     {
-      opt = getopt_long (argc, argv, "be:c:d:nEhC", longopts, 0);
+      opt = getopt_long (argc, argv, "be:c:d:S:nEhC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -261,6 +266,9 @@ main (int argc, char **argv, char **env)
 	    tail = cr;
 	  }
 	  break;
+	case 'S':
+	  vty_sock_path = optarg;
+	  break; 
 	case 'd':
 	  daemon_name = optarg;
 	  break;
