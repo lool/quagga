@@ -216,9 +216,12 @@ parts:
         stage-packages:
            - telnet
            - traceroute
-           - iputils-ping
         plugin: make
         source: helpers
+        snap:
+           - bin/telnet
+           - bin/traceroute
+           - bin/traceroute6
     docs:
         plugin: dump
         source: .
