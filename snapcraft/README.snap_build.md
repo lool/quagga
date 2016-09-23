@@ -48,11 +48,9 @@ Installing the snap
 
         snap install ./quagga*.snap
 
-    Connect the priviledged `network-control` and `network-observe` plugs
-    to the snap:
+    Connect the priviledged `network-control` plug to the snap:
 
         snap connect quagga:network-control ubuntu-core:network-control
-        snap connect quagga:network-observe ubuntu-core:network-observe
 
 DONE.
 
@@ -95,3 +93,4 @@ path). If access as `vtysh` instead of `quagga.vtysh` is needed, a symlink
 can be created:
 
     sudo ln -s /snap/bin/quagga.vtysh /usr/local/bin/vtysh
+

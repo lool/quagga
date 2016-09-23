@@ -7,10 +7,9 @@ to get Snaps working.
 Using the Quagga Snap
 =====================
 
-After installing the Snap, the priviledged plugs need to be connected:
+After installing the Snap, the priviledged plug need to be connected:
 
     snap connect quagga:network-control ubuntu-core:network-control
-    snap connect quagga:network-observe ubuntu-core:network-observe
 
 Enabling/Disabling Quagga Daemons
 ---------------------------------
