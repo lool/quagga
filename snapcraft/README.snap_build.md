@@ -44,9 +44,10 @@ Installing the snap
 
         sudo apt-get install snapd
 
-2. Install self-built quagga snap
+2. Install self-built quagga snap. (`--force-dangerous` is required to
+   install a unsigned self-built snap)
 
-        snap install ./quagga*.snap
+        snap install --force-dangerous ./quagga*.snap
 
     Connect the priviledged `network-control` plug to the snap:
 
