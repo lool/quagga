@@ -1,0 +1,232 @@
+name: quagga
+version: 1.0.20160315-lool
+summary: Quagga BGP/OSPFv2/OSPFv3/ISIS/RIP/RIPng/PIM routing daemon
+description: BGP/OSPFv2/OSPFv3/ISIS/RIP/RIPng/PIM routing daemon
+ GNU Quagga is free software which manages TCP/IP based routing protocols.
+ It supports BGP4, BGP4+, OSPFv2, OSPFv3, IS-IS, RIPv1, RIPv2, RIPng and
+ PIM as well as the IPv6 versions of these.
+grade: stable
+confinement: strict
+
+apps:
+    vtysh:
+        command: bin/vtysh --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    version:
+        command: sbin/zebra --version
+    readme:
+        command: bin/cat $SNAP/doc/README.usage.md
+    zebra:
+        command: bin/zebra-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    bgpd:
+        command: bin/bgpd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ospfd:
+        command: bin/ospfd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ospf6d:
+        command: bin/ospf6d-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    isisd:
+        command: bin/isisd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ripd:
+        command: bin/ripd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ripngd:
+        command: bin/ripngd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    pimd:
+        command: bin/pimd-service
+        daemon: simple
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    zebra-debug:
+        command: sbin/zebra -f $SNAP_DATA/zebra.conf --pid_file $SNAP_DATA/zebra.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    bgpd-debug:
+        command: sbin/bgpd -f $SNAP_DATA/bgpd.conf --pid_file $SNAP_DATA/bgpd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ospfd-debug:
+        command: sbin/ospfd -f $SNAP_DATA/ospfd.conf --pid_file $SNAP_DATA/ospfd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ospf6d-debug:
+        command: sbin/ospf6d -f $SNAP_DATA/ospf6d.conf --pid_file $SNAP_DATA/ospf6d.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    isisd-debug:
+        command: sbin/isisd -f $SNAP_DATA/isisd.conf --pid_file $SNAP_DATA/isisd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ripd-debug:
+        command: sbin/ripd -f $SNAP_DATA/ripd.conf --pid_file $SNAP_DATA/ripd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    ripngd-debug:
+        command: sbin/ripngd -f $SNAP_DATA/ripngd.conf --pid_file $SNAP_DATA/ripngd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+    pimd-debug:
+        command: sbin/pimd -f $SNAP_DATA/pimd.conf --pid_file $SNAP_DATA/pimd.pid --socket $SNAP_DATA/zsock --vty_socket $SNAP_DATA
+        plugs:
+            - network
+            - network-bind
+            - network-control
+            - network-observe
+
+parts:
+    quagga: 
+        build-packages: 
+           - autoconf
+           - automake
+           - libtool
+           - make
+           - gawk
+           - libreadline-dev
+           - texinfo
+           - dejagnu
+           - libncurses5-dev
+           - texlive-latex-base
+           - texlive-generic-recommended
+           - libcap-dev
+           - imagemagick
+           - ghostscript
+           - groff
+           - hardening-wrapper
+           - libpcre3-dev
+           - chrpath
+        stage-packages:
+           - coreutils
+           - iproute2
+           - logrotate
+           - libcap2
+           - libc6
+           - libtinfo5
+           - libreadline6
+        plugin: autotools
+        source: .
+        configflags:
+            - --with-cflags=-g
+            - --with-cflags=-O0
+            - --with-cflags=-std=gnu99
+            - --with-cflags=-fpie
+            - --with-cflags=-fno-omit-frame-pointer
+            - --with-cflags=-Wall
+            - --enable-vtysh
+            - --enable-isisd
+            - --enable-watchquagga
+            - --enable-ospfclient=yes
+            - --enable-ospfapi=yes
+            - --enable-multipath=64
+            - --enable-rtadv
+            - --enable-irdp
+            - --enable-gcc-rdynamic
+            - --enable-user=root
+            - --enable-group=root
+            - --enable-pimd
+            - --enable-configfile-mask=0640
+            - --enable-logfile-mask=0640 
+            - --localstatedir=/var/run
+            - --sbindir=/sbin
+            - --bindir=/bin
+            - --sysconfdir=/etc/quagga
+            - --with-pkg-extra-version=-lool
+    quagga-defaults:
+        plugin: dump
+        source: snapcraft/defaults
+        organize:
+            zebra.conf.default: etc/quagga/zebra.conf.default
+            bgpd.conf.default: etc/quagga/bgpd.conf.default
+            isisd.conf.default: etc/quagga/isisd.conf.default
+            ospf6d.conf.default: etc/quagga/ospf6d.conf.default
+            ospfd.conf.default: etc/quagga/ospfd.conf.default
+            pimd.conf.default: etc/quagga/pimd.conf.default
+            ripd.conf.default: etc/quagga/ripd.conf.default
+            ripngd.conf.default: etc/quagga/ripngd.conf.default
+    quagga-scripts:
+        plugin: make
+        source: snapcraft/scripts
+    helpers:
+        stage-packages:
+           - telnet
+           - traceroute
+        plugin: make
+        source: snapcraft/helpers
+        snap:
+           - bin/telnet
+           - bin/traceroute
+           - bin/traceroute6
+    docs:
+        plugin: dump
+        source: snapcraft
+        organize:
+            README.usage.md: doc/README.usage.md
+            README.snap_build.md: doc/README.snap_build.md
+
